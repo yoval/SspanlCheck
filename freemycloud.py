@@ -6,9 +6,7 @@ invite code:j7hm
 """
 import requests,re,time
 
-url = 'https://freemycloud.cc/auth/login'
-checkurl = 'https://freemycloud.cc/user/checkin'
-htmlurl = 'https://freemycloud.cc/user'
+basedomain = 'https://freemycloud.cc'
 my_proxies = {
     'http':'socks5://127.0.0.1:10808',
     'https':'socks5://127.0.0.1:10808'
@@ -55,7 +53,7 @@ def Check(datalist):
         
     for data in datalist:
         conn = requests.session()
-        rep = conn.post(url, data=data,proxies=my_proxies,timeout=5)
+        rep = conn.post('%s/auth/login'%basedomain, data=data,proxies=my_proxies,timeout=5)
         repjson = rep.json()
         MSG = repjson['msg']
         print(MSG)
@@ -67,11 +65,11 @@ def Check(datalist):
         if MSG == '邮箱或者密码错误':
             print('请检查账号 %s 密码'%data['email'])
         # 签到
-        checkrep = conn.post(checkurl,proxies=my_proxies,timeout=5)
+        checkrep = conn.post('%s/user/checkin'%basedomain,proxies=my_proxies,timeout=5)
         checkrepjson = checkrep.json()
         print(checkrepjson['msg'])
         #剩余流量
-        htmlrep = conn.get(htmlurl,proxies=my_proxies)
+        htmlrep = conn.get('%s/user'%basedomain,proxies=my_proxies)
         liuliang = re.findall('<h4 class="m-b-0">(.*)</h4>', htmlrep.text)[2]
         print('此账号剩余流量：%s'%liuliang)
         dingyue = re.findall('data-clipboard-text="(.*)">复制',htmlrep.text)
@@ -84,11 +82,10 @@ def Check(datalist):
 # 注册  
 def REG(datalist):
     for data in datalist:
-        SENDurl = 'https://freemycloud.xyz/auth/send'
         print('正在尝试注册账号%s'%data['email'])  
         SENDdata = {'email': data['email']}
         print('正在尝试发邮件至:%s'%data['email'])
-        SENDrep = requests.post(SENDurl,data = SENDdata,proxies=my_proxies)
+        SENDrep = requests.post('%s/auth/send'%basedomain,data = SENDdata,proxies=my_proxies)
         print(SENDrep.text)
         SENDjson = SENDrep.json()
         SENDmsg = SENDjson['msg']
@@ -96,7 +93,6 @@ def REG(datalist):
         if SENDmsg =='此邮箱已经注册':
             time.sleep(5)
             continue
-        REGurl = 'https://freemycloud.xyz/auth/register'
         emailcode = input('请输入验证码：')
         REGdata = {
             'email': data['email'],
@@ -106,7 +102,7 @@ def REG(datalist):
             'code': 'j7m',
             'emailcode': emailcode,
         }
-        REGrep = requests.post(REGurl,data = REGdata,timeout=5,proxies=my_proxies)
+        REGrep = requests.post('%s/auth/register'%basedomain ,data = REGdata,timeout=5,proxies=my_proxies)
         REGjson = REGrep.json()
         MSG = REGjson['msg']
         print(MSG)
